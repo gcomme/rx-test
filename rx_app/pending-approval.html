@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Approval - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-primary text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">New Arrivals Alliance</h1>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
+            <div class="mb-6">
+                <svg class="w-16 h-16 text-yellow-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+
+            <h2 class="text-2xl font-bold text-primary mb-4">Account Pending Approval</h2>
+
+            <p class="text-gray-600 mb-4">
+                Thank you for registering your charity with New Arrivals Alliance!
+            </p>
+
+            <p class="text-gray-600 mb-6">
+                Your account is currently pending approval by an administrator. You will receive an email notification
+                once your account has been approved.
+            </p>
+
+            <div class="border-t border-gray-200 pt-6">
+                <p class="text-gray-500 text-sm mb-4">If you have any questions, please contact us at:</p>
+                <p class="text-gray-700 font-medium">support@newarrivalsalliance.org</p>
+            </div>
+
+            <div class="mt-8">
+                <button id="logout-btn"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-primary text-white text-center p-3 text-sm">
+        <p>© 2025 New Arrivals Alliance. All rights reserved.</p>
+        <div class="mt-2">
+            <a href="index.html" class="text-white hover:underline">Return to Home</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if user is logged in but not approved
+            auth.onAuthStateChanged(async user => {
+                if (!user) {
+                    // Redirect to login if not logged in
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Get user data from Firestore
+                const userDoc = await usersRef.doc(user.uid).get();
+
+                if (!userDoc.exists) {
+                    console.error('User document does not exist');
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const userData = userDoc.data();
+
+                // If user is admin or is already approved, redirect them
+                if (userData.role === 'admin' || userData.approved) {
+                    if (userData.role === 'admin') {
+                        window.location.href = 'admin/dashboard.html';
+                    } else {
+                        window.location.href = 'charity/dashboard.html';
+                    }
+                }
+
+                // Otherwise, they should see the pending approval page
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async function () {
+                try {
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                    alert('Failed to sign out. Please try again.');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

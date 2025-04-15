@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+
+
+    <!-- Your config first -->
+    <script src="js/firebase-config.js"></script>
+    <!-- Then your other scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+
+
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-primary text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">New Arrivals Alliance</h1>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-bold text-primary mb-6 text-center">Login</h2>
+
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" required
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" name="password" required
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+
+                <div id="error-message" class="text-red-500 text-sm hidden"></div>
+
+                <div>
+                    <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Login
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <a href="#" id="forgot-password" class="text-sm text-primary hover:underline">
+                        Forgot your password?
+                    </a>
+                    <a href="signup.html" class="text-sm text-primary hover:underline">
+                        Sign up as charity
+                    </a>
+                </div>
+            </form>
+
+            <div id="reset-password-form" class="hidden space-y-4">
+                <h3 class="text-lg font-medium text-primary mb-2">Reset Password</h3>
+
+                <div>
+                    <label for="reset-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="reset-email" name="reset-email" required
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary">
+                </div>
+
+                <div id="reset-message" class="text-sm hidden"></div>
+
+                <div>
+                    <button id="reset-submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Send Reset Link
+                    </button>
+                </div>
+
+                <div>
+                    <button id="back-to-login"
+                        class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Back to Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-primary text-white text-center p-3 text-sm">
+        <p>© 2025 New Arrivals Alliance. All rights reserved.</p>
+        <div class="mt-2">
+            <a href="index.html" class="text-white hover:underline">Return to Home</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if user is already logged in
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // Wait for the auth.js to handle the redirection
+                }
+            });
+
+            // Login form submission
+            const loginForm = document.getElementById('login-form');
+            loginForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const errorMessage = document.getElementById('error-message');
+
+                // Clear previous error
+                errorMessage.textContent = '';
+                errorMessage.classList.add('hidden');
+
+                try {
+                    // Show loading state
+                    const submitButton = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitButton.textContent;
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<div class="loader mx-auto"></div>';
+
+                    const result = await login(email, password);
+
+                    if (!result.success) {
+                        errorMessage.textContent = result.error || 'Login failed. Please check your credentials.';
+                        errorMessage.classList.remove('hidden');
+
+                        // Reset button
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalText;
+                    }
+                } catch (error) {
+                    errorMessage.textContent = error.message || 'An unexpected error occurred.';
+                    errorMessage.classList.remove('hidden');
+
+                    // Reset button
+                    const submitButton = loginForm.querySelector('button[type="submit"]');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Login';
+                }
+            });
+
+            // Forgot password link
+            const forgotPasswordLink = document.getElementById('forgot-password');
+            forgotPasswordLink.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('reset-password-form').classList.remove('hidden');
+            });
+
+            // Back to login
+            const backToLoginButton = document.getElementById('back-to-login');
+            backToLoginButton.addEventListener('click', function () {
+                document.getElementById('reset-password-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+
+                // Clear reset form and messages
+                document.getElementById('reset-email').value = '';
+                const resetMessage = document.getElementById('reset-message');
+                resetMessage.textContent = '';
+                resetMessage.classList.add('hidden');
+                resetMessage.classList.remove('text-green-500', 'text-red-500');
+            });
+
+            // Reset password form submission
+            const resetSubmitButton = document.getElementById('reset-submit');
+            resetSubmitButton.addEventListener('click', async function () {
+                const email = document.getElementById('reset-email').value;
+                const resetMessage = document.getElementById('reset-message');
+
+                // Clear previous message
+                resetMessage.textContent = '';
+                resetMessage.classList.add('hidden');
+                resetMessage.classList.remove('text-green-500', 'text-red-500');
+
+                if (!email) {
+                    resetMessage.textContent = 'Please enter your email address.';
+                    resetMessage.classList.remove('hidden');
+                    resetMessage.classList.add('text-red-500');
+                    return;
+                }
+
+                try {
+                    // Show loading state
+                    const originalText = resetSubmitButton.textContent;
+                    resetSubmitButton.disabled = true;
+                    resetSubmitButton.innerHTML = '<div class="loader mx-auto"></div>';
+
+                    const result = await resetPassword(email);
+
+                    if (result.success) {
+                        resetMessage.textContent = 'Password reset email sent. Check your inbox.';
+                        resetMessage.classList.remove('hidden');
+                        resetMessage.classList.add('text-green-500');
+                    } else {
+                        resetMessage.textContent = result.error || 'Failed to send reset email. Try again later.';
+                        resetMessage.classList.remove('hidden');
+                        resetMessage.classList.add('text-red-500');
+                    }
+
+                    // Reset button
+                    resetSubmitButton.disabled = false;
+                    resetSubmitButton.textContent = originalText;
+                } catch (error) {
+                    resetMessage.textContent = error.message || 'An unexpected error occurred.';
+                    resetMessage.classList.remove('hidden');
+                    resetMessage.classList.add('text-red-500');
+
+                    // Reset button
+                    resetSubmitButton.disabled = false;
+                    resetSubmitButton.textContent = originalText;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

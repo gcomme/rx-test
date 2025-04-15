@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="flex items-center justify-center mb-8">
+            <h1 class="text-xl font-bold text-white">Admin Panel</h1>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="categories.html" class="sidebar-link">
+                <i class="fas fa-th-large"></i> Service Categories
+            </a>
+            <a href="charities.html" class="sidebar-link">
+                <i class="fas fa-users"></i> Charities
+            </a>
+            <a href="stats.html" class="sidebar-link active">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <a href="#" id="logout-btn" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="ml-64 w-full">
+        <!-- Top header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Statistics</h2>
+
+            <div class="flex items-center">
+                <span id="user-name" class="text-gray-600 mr-4">Admin</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="p-6">
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Services by Category -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Services by Category</h3>
+                    <div class="h-80">
+                        <canvas id="servicesByCategoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Services by Charity -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Services by Charity</h3>
+                    <div class="h-80">
+                        <canvas id="servicesByCharityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services List -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">All Services</h3>
+                    <div class="flex items-center space-x-2">
+                        <label for="category-filter" class="text-sm text-gray-600">Filter by Category:</label>
+                        <select id="category-filter"
+                            class="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-primary focus:border-primary text-sm">
+                            <option value="">All Categories</option>
+                            <!-- Categories will be loaded here -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="text-left bg-gray-50">
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Service
+                                </th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Category</th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Charity
+                                </th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created
+                                </th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-list">
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                    <div class="loader mx-auto"></div>
+                                    <p class="mt-2">Loading services...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Services</p>
+                            <h3 id="total-services" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-concierge-bell text-green-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Active Services</p>
+                            <h3 id="active-services" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Categories</p>
+                            <h3 id="total-categories" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-th-large text-purple-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Charities</p>
+                            <h3 id="total-charities" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-users text-yellow-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check if user is admin
+            auth.onAuthStateChanged(async user => {
+                if (!user) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Make sure user is admin
+                const role = await getCurrentUserRole();
+                if (role !== 'admin') {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Load admin name
+                const userDoc = await usersRef.doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('user-name').textContent = userData.name || 'Admin';
+                }
+
+                // Load statistics
+                loadStatistics();
+            });
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+                document.querySelector('.sidebar').classList.toggle('open');
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async function (e) {
+                e.preventDefault();
+                try {
+                    await logout();
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    showToast('Failed to log out', 'error');
+                }
+            });
+
+            // Category filter
+            document.getElementById('category-filter').addEventListener('change', function () {
+                filterServices();
+            });
+        });
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                // Fetch all services
+                const servicesSnapshot = await servicesRef.get();
+                const services = [];
+
+                const categoryIds = new Set();
+                const charityIds = new Set();
+
+                servicesSnapshot.forEach(doc => {
+                    const service = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+
+                    services.push(service);
+                    categoryIds.add(service.categoryId);
+                    charityIds.add(service.charityId);
+                });
+
+                // Fetch categories
+                const categoriesSnapshot = await categoriesRef.orderBy('name').get();
+                const categories = {};
+
+                categoriesSnapshot.forEach(doc => {
+                    categories[doc.id] = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                });
+
+                // Fetch charities
+                const charitiesSnapshot = await usersRef.where('role', '==', 'charity').get();
+                const charities = {};
+
+                charitiesSnapshot.forEach(doc => {
+                    charities[doc.id] = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                });
+
+                // Populate category filter
+                const categoryFilter = document.getElementById('category-filter');
+                categoriesSnapshot.forEach(doc => {
+                    const category = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = category.name;
+                    categoryFilter.appendChild(option);
+                });
+
+                // Update summary cards
+                document.getElementById('total-services').textContent = services.length;
+                document.getElementById('active-services').textContent = services.filter(s => s.active).length;
+                document.getElementById('total-categories').textContent = categoriesSnapshot.size;
+                document.getElementById('total-charities').textContent = charitiesSnapshot.size;
+
+                // Create services by category chart
+                createServicesByCategoryChart(services, categories);
+
+                // Create services by charity chart
+                createServicesByCharityChart(services, charities);
+
+                // Populate services table
+                populateServicesTable(services, categories, charities);
+
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showToast('Error loading statistics', 'error');
+            }
+        }
+
+        // Create services by category chart
+        function createServicesByCategoryChart(services, categories) {
+            // Count services by category
+            const categoryData = {};
+
+            services.forEach(service => {
+                const categoryId = service.categoryId;
+                if (!categoryData[categoryId]) {
+                    categoryData[categoryId] = {
+                        count: 0,
+                        name: categories[categoryId] ? categories[categoryId].name : 'Unknown'
+                    };
+                }
+
+                categoryData[categoryId].count++;
+            });
+
+            // Prepare chart data
+            const labels = [];
+            const data = [];
+            const backgroundColor = [];
+
+            // Color palette
+            const colors = [
+                '#4c1d95', '#5b21b6', '#6d28d9', '#7c3aed', '#8b5cf6',
+                '#a78bfa', '#c4b5fd', '#1e3a8a', '#1e40af', '#1d4ed8',
+                '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'
+            ];
+
+            let colorIndex = 0;
+
+            Object.values(categoryData).forEach(category => {
+                labels.push(category.name);
+                data.push(category.count);
+                backgroundColor.push(colors[colorIndex % colors.length]);
+                colorIndex++;
+            });
+
+            // Create chart
+            const ctx = document.getElementById('servicesByCategoryChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create services by charity chart
+        function createServicesByCharityChart(services, charities) {
+            // Count services by charity
+            const charityData = {};
+
+            services.forEach(service => {
+                const charityId = service.charityId;
+                if (!charityData[charityId]) {
+                    charityData[charityId] = {
+                        count: 0,
+                        name: charities[charityId] ? charities[charityId].name : 'Unknown'
+                    };
+                }
+
+                charityData[charityId].count++;
+            });
+
+            // Prepare chart data
+            const labels = [];
+            const data = [];
+
+            // Sort charities by count (descending)
+            const sortedCharities = Object.values(charityData).sort((a, b) => b.count - a.count);
+
+            // Take top 10 charities
+            const topCharities = sortedCharities.slice(0, 10);
+
+            topCharities.forEach(charity => {
+                labels.push(charity.name);
+                data.push(charity.count);
+            });
+
+            // Create chart
+            const ctx = document.getElementById('servicesByCharityChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Services',
+                        data: data,
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#2563eb',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate services table
+        function populateServicesTable(services, categories, charities) {
+            const servicesList = document.getElementById('services-list');
+
+            if (services.length === 0) {
+                servicesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No services available.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Store services in a global variable for filtering
+            window.allServices = services.map(service => ({
+                ...service,
+                categoryName: categories[service.categoryId] ? categories[service.categoryId].name : 'Unknown',
+                charityName: charities[service.charityId] ? charities[service.charityId].name : 'Unknown',
+                createdAt: service.createdAt ? formatDate(service.createdAt) : 'N/A'
+            }));
+
+            // Initial population
+            updateServicesTable(window.allServices);
+        }
+
+        // Update services table with filtered data
+        function updateServicesTable(services) {
+            const servicesList = document.getElementById('services-list');
+
+            if (services.length === 0) {
+                servicesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No services match the filter criteria.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            services.forEach(service => {
+                html += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">${service.title}</td>
+                        <td class="px-6 py-4">${service.categoryName}</td>
+                        <td class="px-6 py-4">${service.charityName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${service.createdAt}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs ${service.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${service.active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            servicesList.innerHTML = html;
+        }
+
+        // Filter services based on category selection
+        function filterServices() {
+            const categoryId = document.getElementById('category-filter').value;
+
+            if (!window.allServices) return;
+
+            let filteredServices = window.allServices;
+
+            if (categoryId) {
+                filteredServices = window.allServices.filter(service => service.categoryId === categoryId);
+            }
+
+            updateServicesTable(filteredServices);
+        }
+    </script>
+</body>
+
+</html>

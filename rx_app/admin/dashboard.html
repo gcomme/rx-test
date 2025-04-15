@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="flex items-center justify-center mb-8">
+            <h1 class="text-xl font-bold text-white">Admin Panel</h1>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="sidebar-link active">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="categories.html" class="sidebar-link">
+                <i class="fas fa-th-large"></i> Service Categories
+            </a>
+            <a href="charities.html" class="sidebar-link">
+                <i class="fas fa-users"></i> Charities
+            </a>
+            <a href="stats.html" class="sidebar-link">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <a href="#" id="logout-btn" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="ml-64 w-full">
+        <!-- Top header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Dashboard</h2>
+
+            <div class="flex items-center">
+                <span id="user-name" class="text-gray-600 mr-4">Admin</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Categories</p>
+                            <h3 id="categories-count" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-th-large text-blue-500"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="categories.html" class="text-sm text-blue-500 hover:underline">View all categories</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Services</p>
+                            <h3 id="services-count" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-concierge-bell text-green-500"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="stats.html" class="text-sm text-green-500 hover:underline">View all services</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Charities</p>
+                            <h3 id="charities-count" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-users text-purple-500"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="charities.html" class="text-sm text-purple-500 hover:underline">View all charities</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Pending Approvals</p>
+                            <h3 id="pending-count" class="text-3xl font-bold text-gray-800">0</h3>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-clock text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="charities.html?filter=pending" class="text-sm text-yellow-500 hover:underline">View
+                            pending charities</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Services -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Recent Services</h3>
+                    <a href="stats.html" class="text-sm text-blue-500 hover:underline">View all</a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="text-left text-gray-500 border-b">
+                                <th class="pb-3 font-medium">Service</th>
+                                <th class="pb-3 font-medium">Category</th>
+                                <th class="pb-3 font-medium">Charity</th>
+                                <th class="pb-3 font-medium">Created</th>
+                                <th class="pb-3 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-services">
+                            <tr>
+                                <td colspan="5" class="py-4 text-center text-gray-500">
+                                    <div class="loader mx-auto"></div>
+                                    <p class="mt-2">Loading services...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="categories.html?action=new"
+                        class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        <div class="bg-blue-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-plus text-blue-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-800">Add Category</h4>
+                            <p class="text-sm text-gray-500">Create a new service category</p>
+                        </div>
+                    </a>
+
+                    <a href="charities.html?filter=pending"
+                        class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                        <div class="bg-green-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-check text-green-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-800">Approve Charities</h4>
+                            <p class="text-sm text-gray-500">Review pending charity applications</p>
+                        </div>
+                    </a>
+
+                    <a href="stats.html"
+                        class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-chart-line text-purple-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-800">View Statistics</h4>
+                            <p class="text-sm text-gray-500">Monitor platform activity</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check if user is admin
+            auth.onAuthStateChanged(async user => {
+                if (!user) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Make sure user is admin
+                const role = await getCurrentUserRole();
+                if (role !== 'admin') {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Load admin name
+                const userDoc = await usersRef.doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('user-name').textContent = userData.name || 'Admin';
+                }
+
+                // Load dashboard data
+                loadDashboardData();
+            });
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+                document.querySelector('.sidebar').classList.toggle('open');
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async function (e) {
+                e.preventDefault();
+                try {
+                    await logout();
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    showToast('Failed to log out', 'error');
+                }
+            });
+
+            // Load dashboard data
+            async function loadDashboardData() {
+                try {
+                    const stats = await fetchDashboardStats();
+
+                    // Update count cards
+                    document.getElementById('categories-count').textContent = stats.categoriesCount;
+                    document.getElementById('services-count').textContent = stats.servicesCount;
+                    document.getElementById('charities-count').textContent = stats.charitiesCount;
+                    document.getElementById('pending-count').textContent = stats.pendingCharitiesCount;
+
+                    // Update recent services table
+                    const recentServicesTable = document.getElementById('recent-services');
+
+                    if (stats.recentServices.length === 0) {
+                        recentServicesTable.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="py-4 text-center text-gray-500">
+                                    No services available
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    let html = '';
+                    stats.recentServices.forEach(service => {
+                        html += `
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3">${service.title}</td>
+                                <td class="py-3">${service.categoryName}</td>
+                                <td class="py-3">${service.charityName}</td>
+                                <td class="py-3">${service.createdAt}</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-1 rounded-full text-xs ${service.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${service.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    recentServicesTable.innerHTML = html;
+
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    showToast('Error loading dashboard data', 'error');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

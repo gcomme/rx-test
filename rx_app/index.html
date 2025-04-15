@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+</head>
+
+<body class="text-gray-600">
+    <header class="bg-primary text-white p-4 text-center">
+        <h1 class="text-2xl sm:text-3xl font-bold">New Arrivals Alliance</h1>
+    </header>
+
+    <main class="p-4">
+        <section id="services" class="service-container max-w-5xl mx-auto">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl sm:text-3xl font-bold text-primary mb-2">You're Home Now</h2>
+                <p class="text-base text-gray-600">Find what you need to settle in: food, shelter, support, and a path
+                    forward</p>
+            </div>
+            <div id="service-categories" class="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                <!-- Service categories will be loaded here -->
+                <div class="text-center col-span-full">
+                    <div class="loader mx-auto"></div>
+                    <p class="mt-2">Loading services...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="details" class="details-container max-w-5xl mx-auto hidden">
+            <button id="back-btn-top" class="bg-white text-primary text-lg mb-4 p-2 rounded-md">← Back</button>
+            <h2 id="details-title" class="text-xl sm:text-2xl font-bold text-primary mb-4"></h2>
+            <div id="details-content">
+                <!-- Service details will be loaded here -->
+            </div>
+            <button id="back-btn-bottom" class="bg-white text-primary text-xl mt-4 p-2 rounded-md w-full">←
+                Back</button>
+        </section>
+    </main>
+
+    <footer class="bg-primary text-white text-center p-3 text-sm">
+        <p>© 2025 New Arrivals Alliance. All rights reserved.</p>
+        <div class="mt-2">
+            <a href="login.html" class="text-white hover:underline">Charity/Admin Login</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Fetch service categories
+            try {
+                const snapshot = await categoriesRef.orderBy('name').get();
+                const serviceCategories = document.getElementById('service-categories');
+
+                // Clear loading indicator
+                serviceCategories.innerHTML = '';
+
+                if (snapshot.empty) {
+                    serviceCategories.innerHTML = '<div class="text-center col-span-full"><p>No services available at the moment. Please check back later.</p></div>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const category = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'service-card bg-white p-6 rounded-lg shadow-md text-center cursor-pointer hover:scale-105 transition-transform duration-300 flex flex-col justify-center items-center min-h-[150px]';
+                    card.innerHTML = `
+                        <i data-lucide="${category.icon || 'help-circle'}" class="w-12 h-12 mb-3 text-primary"></i>
+                        <span class="text-lg font-medium text-primary">${category.name}</span>
+                    `;
+                    card.addEventListener('click', () => showCategoryDetails(doc.id, category.name));
+                    serviceCategories.appendChild(card);
+                });
+
+                // Initialize Lucide icons
+                lucide.createIcons();
+
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                const serviceCategories = document.getElementById('service-categories');
+                serviceCategories.innerHTML = '<div class="text-center col-span-full"><p>Error loading services. Please try again later.</p></div>';
+            }
+
+            // Back button event listeners
+            document.getElementById('back-btn-top').addEventListener('click', hideDetails);
+            document.getElementById('back-btn-bottom').addEventListener('click', hideDetails);
+        });
+
+        async function showCategoryDetails(categoryId, categoryName) {
+            try {
+                const snapshot = await servicesRef
+                    .where('categoryId', '==', categoryId)
+                    .where('active', '==', true)
+                    .get();
+
+                const detailsSection = document.getElementById('details');
+                const servicesSection = document.getElementById('services');
+                const title = document.getElementById('details-title');
+                const content = document.getElementById('details-content');
+
+                servicesSection.classList.add('hidden');
+                detailsSection.classList.remove('hidden');
+                title.textContent = categoryName;
+
+                if (snapshot.empty) {
+                    content.innerHTML = '<div class="bg-white p-6 rounded-lg mb-5 shadow-md"><p class="text-center">No services available in this category at the moment.</p></div>';
+                    return;
+                }
+
+                let html = '';
+                const services = [];
+
+                // Gather all services and their charity data
+                await Promise.all(snapshot.docs.map(async doc => {
+                    const service = doc.data();
+                    const charityDoc = await usersRef.doc(service.charityId).get();
+                    const charity = charityDoc.data();
+
+                    services.push({
+                        id: doc.id,
+                        ...service,
+                        charityName: charity.name,
+                        charityPhone: charity.phone,
+                        charityAddress: charity.address
+                    });
+                }));
+
+                // Sort services alphabetically by title
+                services.sort((a, b) => a.title.localeCompare(b.title));
+
+                services.forEach(service => {
+                    html += `
+                        <div class="detail-item bg-white p-6 rounded-lg mb-5 shadow-md">
+                            <h3 class="text-lg font-bold text-primary mb-3">${service.title}</h3>
+                            <p class="text-lg text-gray-600 mb-4">${service.description}</p>
+                            
+                            <div class="mb-4">
+                                <h4 class="font-bold text-primary mb-2">Eligibility</h4>
+                                <p class="text-gray-600">${service.eligibility || 'Available to all eligible individuals'}</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h4 class="font-bold text-primary mb-2">Requirements</h4>
+                                <p class="text-gray-600">${service.requirements || 'No specific requirements'}</p>
+                            </div>
+                            
+                            <div class="org-block bg-gray-50 p-5 rounded-md">
+                                <p class="text-base font-bold text-gray-700">${service.charityName}</p>
+                                <p class="text-base text-gray-600">
+                                    <a href="https://maps.google.com/?q=${encodeURIComponent(service.address || service.charityAddress)}" 
+                                       target="_blank" class="text-primary hover:underline">
+                                        ${service.address || service.charityAddress || 'No address provided'}
+                                    </a>
+                                </p>
+                                <p class="text-base text-gray-600">
+                                    <a href="tel:${service.phone || service.charityPhone}" 
+                                       class="text-primary hover:underline">
+                                        ${service.phone || service.charityPhone || 'No phone provided'}
+                                    </a>
+                                </p>
+                                <p class="text-base text-gray-600"><strong>Hours:</strong> ${service.hours || 'Contact for details'}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content.innerHTML = html;
+
+                // Scroll to top of details
+                detailsSection.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error fetching services:', error);
+                showToast('Error loading services', 'error');
+            }
+        }
+
+        function hideDetails() {
+            document.getElementById('services').classList.remove('hidden');
+            document.getElementById('details').classList.add('hidden');
+
+            // Scroll to top of services
+            document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>

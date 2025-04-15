@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="flex items-center justify-center mb-8">
+            <h1 class="text-xl font-bold text-white">Charity Panel</h1>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="services.html" class="sidebar-link">
+                <i class="fas fa-concierge-bell"></i> Services
+            </a>
+            <a href="account.html" class="sidebar-link active">
+                <i class="fas fa-user-circle"></i> Account
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <a href="#" id="logout-btn" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="ml-64 w-full">
+        <!-- Top header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Account Settings</h2>
+
+            <div class="flex items-center">
+                <span id="charity-name" class="text-gray-600 mr-4">Charity Name</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Profile Information -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Charity Profile</h3>
+
+                        <form id="profile-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="charity-name-input"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Charity Name</label>
+                                    <input type="text" id="charity-name-input" name="charity-name" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                </div>
+
+                                <div>
+                                    <label for="charity-email"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <input type="email" id="charity-email" name="charity-email" readonly
+                                        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
+                                    <p class="text-xs text-gray-500 mt-1">Contact admin to change email</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="charity-description"
+                                    class="block text-sm font-medium text-gray-700 mb-1">About Your Charity</label>
+                                <textarea id="charity-description" name="charity-description" rows="3" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">This will be visible to asylum seekers seeking
+                                    services</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="charity-phone"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input type="tel" id="charity-phone" name="charity-phone" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                </div>
+
+                                <div>
+                                    <label for="charity-website"
+                                        class="block text-sm font-medium text-gray-700 mb-1">Website (optional)</label>
+                                    <input type="url" id="charity-website" name="charity-website" placeholder="https://"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="charity-address"
+                                    class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                <input type="text" id="charity-address" name="charity-address" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            </div>
+
+                            <div>
+                                <button type="submit" id="save-profile-btn"
+                                    class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-secondary focus:outline-none">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Password Change -->
+                <div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Change Password</h3>
+
+                        <form id="password-form">
+                            <div class="mb-4">
+                                <label for="current-password"
+                                    class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                                <input type="password" id="current-password" name="current-password" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">New
+                                    Password</label>
+                                <input type="password" id="new-password" name="new-password" required minlength="6"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="confirm-password"
+                                    class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                                <input type="password" id="confirm-password" name="confirm-password" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                            </div>
+
+                            <div>
+                                <button type="submit" id="change-password-btn"
+                                    class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-secondary focus:outline-none">
+                                    Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Account Information</h3>
+
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm text-gray-500">Account Status</p>
+                                <p class="font-medium">
+                                    <span id="account-status"
+                                        class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                        Approved
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-sm text-gray-500">Account Created</p>
+                                <p id="account-created" class="font-medium">-</p>
+                            </div>
+
+                            <div>
+                                <p class="text-sm text-gray-500">Account Approved</p>
+                                <p id="account-approved" class="font-medium">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/charity.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check if user is a charity
+            auth.onAuthStateChanged(async user => {
+                if (!user) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Make sure user is a charity and is approved
+                const userDoc = await usersRef.doc(user.uid).get();
+                if (!userDoc.exists) {
+                    await auth.signOut();
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                const userData = userDoc.data();
+
+                if (userData.role !== 'charity') {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                if (!userData.approved) {
+                    window.location.href = '../pending-approval.html';
+                    return;
+                }
+
+                // Set charity name in header
+                document.getElementById('charity-name').textContent = userData.name;
+
+                // Load charity profile
+                loadCharityProfile(user.uid);
+            });
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+                document.querySelector('.sidebar').classList.toggle('open');
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async function (e) {
+                e.preventDefault();
+                try {
+                    await logout();
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    showToast('Failed to log out', 'error');
+                }
+            });
+
+            // Profile form submission
+            document.getElementById('profile-form').addEventListener('submit', saveProfile);
+
+            // Password form submission
+            document.getElementById('password-form').addEventListener('submit', changePassword);
+        });
+
+        // Load charity profile
+        async function loadCharityProfile(charityId) {
+            try {
+                const profile = await fetchCharityProfile(charityId);
+
+                if (!profile) {
+                    showToast('Error loading profile', 'error');
+                    return;
+                }
+
+                // Populate profile form
+                document.getElementById('charity-name-input').value = profile.name || '';
+                document.getElementById('charity-email').value = profile.email || '';
+                document.getElementById('charity-description').value = profile.description || '';
+                document.getElementById('charity-phone').value = profile.phone || '';
+                document.getElementById('charity-website').value = profile.website || '';
+                document.getElementById('charity-address').value = profile.address || '';
+
+                // Update account information
+                document.getElementById('account-status').textContent = profile.approved ? 'Approved' : 'Pending';
+                document.getElementById('account-status').className = `px-2 py-1 rounded-full text-xs ${profile.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`;
+
+                document.getElementById('account-created').textContent = profile.createdAt || 'N/A';
+                document.getElementById('account-approved').textContent = profile.approvedAt || 'N/A';
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        // Save profile
+        async function saveProfile(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('charity-name-input').value;
+            const email = document.getElementById('charity-email').value;
+            const description = document.getElementById('charity-description').value;
+            const phone = document.getElementById('charity-phone').value;
+            const website = document.getElementById('charity-website').value;
+            const address = document.getElementById('charity-address').value;
+
+            const saveBtn = document.getElementById('save-profile-btn');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<div class="loader mx-auto"></div>';
+
+            try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    throw new Error('User not logged in');
+                }
+
+                const result = await updateCharityProfile(
+                    user.uid,
+                    name,
+                    description,
+                    address,
+                    phone,
+                    website,
+                    email
+                );
+
+                if (result.success) {
+                    showToast('Profile updated successfully', 'success');
+
+                    // Update charity name in header
+                    document.getElementById('charity-name').textContent = name;
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Error updating profile', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        }
+
+        // Change password
+        async function changePassword(e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                showToast('New passwords do not match', 'error');
+                return;
+            }
+
+            const changeBtn = document.getElementById('change-password-btn');
+            const originalText = changeBtn.textContent;
+            changeBtn.disabled = true;
+            changeBtn.innerHTML = '<div class="loader mx-auto"></div>';
+
+            try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    throw new Error('User not logged in');
+                }
+
+                // Create credential with current password
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    user.email,
+                    currentPassword
+                );
+
+                // Re-authenticate user
+                await user.reauthenticateWithCredential(credential);
+
+                // Update password
+                await user.updatePassword(newPassword);
+
+                showToast('Password updated successfully', 'success');
+
+                // Reset form
+                document.getElementById('password-form').reset();
+
+            } catch (error) {
+                console.error('Error changing password:', error);
+
+                if (error.code === 'auth/wrong-password') {
+                    showToast('Current password is incorrect', 'error');
+                } else {
+                    showToast('Error changing password', 'error');
+                }
+            } finally {
+                changeBtn.disabled = false;
+                changeBtn.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+
+</html>

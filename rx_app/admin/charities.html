@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Charities - New Arrivals Alliance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="flex items-center justify-center mb-8">
+            <h1 class="text-xl font-bold text-white">Admin Panel</h1>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="categories.html" class="sidebar-link">
+                <i class="fas fa-th-large"></i> Service Categories
+            </a>
+            <a href="charities.html" class="sidebar-link active">
+                <i class="fas fa-users"></i> Charities
+            </a>
+            <a href="stats.html" class="sidebar-link">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-8">
+            <a href="#" id="logout-btn" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="ml-64 w-full">
+        <!-- Top header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Manage Charities</h2>
+
+            <div class="flex items-center">
+                <span id="user-name" class="text-gray-600 mr-4">Admin</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="p-6">
+            <!-- Tabs -->
+            <div class="mb-6">
+                <div class="flex border-b border-gray-200">
+                    <button id="tab-all" class="tab-btn py-2 px-4 border-b-2 font-medium text-sm focus:outline-none">
+                        All Charities
+                    </button>
+                    <button id="tab-pending"
+                        class="tab-btn py-2 px-4 border-b-2 font-medium text-sm focus:outline-none ml-8">
+                        Pending Approval
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending Approvals -->
+            <div id="pending-charities-container" class="hidden">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="text-left bg-gray-50">
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Charity Name</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Description</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Contact</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Registered</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-charities-list">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                        <div class="loader mx-auto"></div>
+                                        <p class="mt-2">Loading pending charities...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Charities -->
+            <div id="all-charities-container">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="text-left bg-gray-50">
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Charity Name</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Description</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Contact</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Services</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-charities-list">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                        <div class="loader mx-auto"></div>
+                                        <p class="mt-2">Loading charities...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Charity Details Modal -->
+    <div id="charity-details-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Charity Details</h3>
+                <button id="close-details-modal" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="charity-details" class="space-y-4">
+                <div class="loader mx-auto"></div>
+                <p class="text-center">Loading charity details...</p>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <button type="button" id="close-details-btn"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Confirmation Modal -->
+    <div id="reject-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <div class="mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Confirm Rejection</h3>
+                <p class="text-gray-500 mt-2">Are you sure you want to reject this charity? This action cannot be
+                    undone.</p>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-reject"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
+                    Cancel
+                </button>
+                <button type="button" id="confirm-reject"
+                    class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let charityToReject = null;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check if user is admin
+            auth.onAuthStateChanged(async user => {
+                if (!user) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Make sure user is admin
+                const role = await getCurrentUserRole();
+                if (role !== 'admin') {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Load admin name
+                const userDoc = await usersRef.doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('user-name').textContent = userData.name || 'Admin';
+                }
+
+                // Check if we should show pending tab
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('filter') === 'pending') {
+                    showPendingTab();
+                } else {
+                    showAllTab();
+                }
+
+                // Load charities
+                loadAllCharities();
+                loadPendingCharities();
+            });
+
+            // Tab buttons
+            document.getElementById('tab-all').addEventListener('click', showAllTab);
+            document.getElementById('tab-pending').addEventListener('click', showPendingTab);
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+                document.querySelector('.sidebar').classList.toggle('open');
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async function (e) {
+                e.preventDefault();
+                try {
+                    await logout();
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    showToast('Failed to log out', 'error');
+                }
+            });
+
+            // Close details modal buttons
+            document.getElementById('close-details-modal').addEventListener('click', function () {
+                document.getElementById('charity-details-modal').classList.add('hidden');
+            });
+
+            document.getElementById('close-details-btn').addEventListener('click', function () {
+                document.getElementById('charity-details-modal').classList.add('hidden');
+            });
+
+            // Reject modal buttons
+            document.getElementById('cancel-reject').addEventListener('click', function () {
+                document.getElementById('reject-modal').classList.add('hidden');
+                charityToReject = null;
+            });
+
+            document.getElementById('confirm-reject').addEventListener('click', async function () {
+                if (!charityToReject) return;
+
+                try {
+                    const result = await rejectCharity(charityToReject);
+
+                    if (result.success) {
+                        loadAllCharities();
+                        loadPendingCharities();
+                    }
+                } catch (error) {
+                    console.error('Error rejecting charity:', error);
+                    showToast('Error rejecting charity', 'error');
+                }
+
+                document.getElementById('reject-modal').classList.add('hidden');
+                charityToReject = null;
+            });
+        });
+
+        // Show All Charities tab
+        function showAllTab() {
+            document.getElementById('tab-all').classList.add('border-primary', 'text-primary');
+            document.getElementById('tab-all').classList.remove('border-transparent', 'text-gray-500');
+
+            document.getElementById('tab-pending').classList.remove('border-primary', 'text-primary');
+            document.getElementById('tab-pending').classList.add('border-transparent', 'text-gray-500');
+
+            document.getElementById('all-charities-container').classList.remove('hidden');
+            document.getElementById('pending-charities-container').classList.add('hidden');
+
+            // Update URL
+            history.replaceState(null, '', 'charities.html');
+        }
+
+        // Show Pending Approvals tab
+        function showPendingTab() {
+            document.getElementById('tab-pending').classList.add('border-primary', 'text-primary');
+            document.getElementById('tab-pending').classList.remove('border-transparent', 'text-gray-500');
+
+            document.getElementById('tab-all').classList.remove('border-primary', 'text-primary');
+            document.getElementById('tab-all').classList.add('border-transparent', 'text-gray-500');
+
+            document.getElementById('pending-charities-container').classList.remove('hidden');
+            document.getElementById('all-charities-container').classList.add('hidden');
+
+            // Update URL
+            history.replaceState(null, '', 'charities.html?filter=pending');
+        }
+
+        // Load all charities
+        async function loadAllCharities() {
+            try {
+                const charities = await fetchAllCharities();
+                const charitiesList = document.getElementById('all-charities-list');
+
+                if (charities.length === 0) {
+                    charitiesList.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                No charities available.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // Get service counts for each charity
+                const serviceCounts = {};
+                const servicesSnapshot = await servicesRef.get();
+
+                servicesSnapshot.forEach(doc => {
+                    const service = doc.data();
+                    const charityId = service.charityId;
+
+                    if (!serviceCounts[charityId]) {
+                        serviceCounts[charityId] = 0;
+                    }
+
+                    serviceCounts[charityId]++;
+                });
+
+                let html = '';
+
+                charities.forEach(charity => {
+                    const serviceCount = serviceCounts[charity.id] || 0;
+
+                    html += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <a href="#" class="text-primary hover:underline" onclick="viewCharityDetails('${charity.id}'); return false;">
+                                    ${charity.name}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4">${truncateText(charity.description || 'No description available', 100)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div>${charity.email}</div>
+                                <div>${charity.phone || 'No phone provided'}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">${serviceCount}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 rounded-full text-xs ${charity.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${charity.approved ? 'Approved' : 'Pending'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                charitiesList.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading charities:', error);
+                showToast('Error loading charities', 'error');
+
+                const charitiesList = document.getElementById('all-charities-list');
+                charitiesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            Error loading charities. Please try again later.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Load pending charities
+        async function loadPendingCharities() {
+            try {
+                const pendingCharities = await fetchPendingCharities();
+                const pendingCharitiesList = document.getElementById('pending-charities-list');
+
+                if (pendingCharities.length === 0) {
+                    pendingCharitiesList.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                No charities pending approval.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let html = '';
+
+                pendingCharities.forEach(charity => {
+                    html += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <a href="#" class="text-primary hover:underline" onclick="viewCharityDetails('${charity.id}'); return false;">
+                                    ${charity.name}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4">${truncateText(charity.description || 'No description available', 100)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div>${charity.email}</div>
+                                <div>${charity.phone || 'No phone provided'}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">${charity.createdAt}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex space-x-2">
+                                    <button class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-md text-xs" 
+                                            onclick="approveCharity('${charity.id}')">
+                                        Approve
+                                    </button>
+                                    <button class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-xs" 
+                                            onclick="confirmRejectCharity('${charity.id}')">
+                                        Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                pendingCharitiesList.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading pending charities:', error);
+                showToast('Error loading pending charities', 'error');
+
+                const pendingCharitiesList = document.getElementById('pending-charities-list');
+                pendingCharitiesList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            Error loading pending charities. Please try again later.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // View charity details
+        async function viewCharityDetails(charityId) {
+            try {
+                const charityDoc = await usersRef.doc(charityId).get();
+
+                if (!charityDoc.exists) {
+                    showToast('Charity not found', 'error');
+                    return;
+                }
+
+                const charity = charityDoc.data();
+
+                // Get service count for this charity
+                const servicesSnapshot = await servicesRef.where('charityId', '==', charityId).get();
+                const serviceCount = servicesSnapshot.size;
+
+                const detailsContainer = document.getElementById('charity-details');
+
+                // Format dates
+                const createdAt = charity.createdAt ? formatDate(charity.createdAt) : 'N/A';
+                const approvedAt = charity.approvedAt ? formatDate(charity.approvedAt) : 'N/A';
+
+                detailsContainer.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded-md mb-4">
+                        <h4 class="text-lg font-medium text-gray-900 mb-2">${charity.name}</h4>
+                        <p class="text-gray-600">${charity.description || 'No description available'}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-1">Contact Information</h5>
+                            <p class="text-gray-600 mb-1"><strong>Email:</strong> ${charity.email}</p>
+                            <p class="text-gray-600 mb-1"><strong>Phone:</strong> ${charity.phone || 'Not provided'}</p>
+                            <p class="text-gray-600"><strong>Address:</strong> ${charity.address || 'Not provided'}</p>
+                        </div>
+                        
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-1">Account Information</h5>
+                            <p class="text-gray-600 mb-1"><strong>Status:</strong> 
+                                <span class="px-2 py-1 rounded-full text-xs ${charity.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${charity.approved ? 'Approved' : 'Pending'}
+                                </span>
+                            </p>
+                            <p class="text-gray-600 mb-1"><strong>Registered:</strong> ${createdAt}</p>
+                            <p class="text-gray-600 mb-1"><strong>Approved:</strong> ${approvedAt}</p>
+                            <p class="text-gray-600"><strong>Services:</strong> ${serviceCount}</p>
+                        </div>
+                    </div>
+                    
+                    ${charity.approved ? '' : `
+                        <div class="flex space-x-3 mt-4">
+                            <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md text-sm" 
+                                    onclick="approveCharity('${charityId}')">
+                                Approve Charity
+                            </button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm" 
+                                    onclick="confirmRejectCharity('${charityId}')">
+                                Reject Charity
+                            </button>
+                        </div>
+                    `}
+                `;
+
+                document.getElementById('charity-details-modal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error fetching charity details:', error);
+                showToast('Error fetching charity details', 'error');
+            }
+        }
+
+        // Approve charity
+        async function approveCharity(charityId) {
+            try {
+                const result = await approveCharity(charityId);
+
+                if (result.success) {
+                    showToast('Charity approved successfully', 'success');
+                    document.getElementById('charity-details-modal').classList.add('hidden');
+                    loadAllCharities();
+                    loadPendingCharities();
+                }
+            } catch (error) {
+                console.error('Error approving charity:', error);
+                showToast('Error approving charity', 'error');
+            }
+        }
+
+        // Confirm reject charity
+        function confirmRejectCharity(charityId) {
+            charityToReject = charityId;
+            document.getElementById('reject-modal').classList.remove('hidden');
+            document.getElementById('charity-details-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+
+</html>
